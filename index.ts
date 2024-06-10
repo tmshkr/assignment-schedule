@@ -1,9 +1,11 @@
 import { addDays, differenceInMinutes, set } from "date-fns";
-import { formatWithOptions } from "date-fns/fp";
-import { toZonedTime } from "date-fns-tz";
+import { toZonedTime, format } from "date-fns-tz";
 
-const formatDay = formatWithOptions({}, "yyyy-MM-dd EEE");
-const formatTime = formatWithOptions({}, "hh:mmaaa");
+const formatDay = (zonedDate: Date, timeZone: string) =>
+  format(zonedDate, "yyyy-MM-dd EEE", { timeZone });
+
+const formatTime = (zonedDate: Date, timeZone: string) =>
+  format(zonedDate, "hh:mmaaa", { timeZone });
 
 const assignment = {
   id: 12345,
@@ -49,8 +51,9 @@ const assignment = {
   updatedAt: "2024-06-05T07:23:45.080Z",
 };
 
-const startDate = toZonedTime(assignment.startDate, assignment.timezone);
-const endDate = toZonedTime(assignment.endDate, assignment.timezone);
+const timezone = assignment.timezone;
+const startDate = toZonedTime(assignment.startDate, timezone);
+const endDate = toZonedTime(assignment.endDate, timezone);
 
 let totalMinutes = 0;
 for (let d = startDate; d <= endDate; d = addDays(d, 1)) {
@@ -69,13 +72,14 @@ for (let d = startDate; d <= endDate; d = addDays(d, 1)) {
     totalMinutes += minutes;
 
     console.log(
-      `${formatDay(d)}| start: ${formatTime(d1)} | end: ${formatTime(
-        d2
-      )} | ${minutes} minutes`
+      `${formatDay(d, timezone)}| start: ${formatTime(
+        d1,
+        timezone
+      )} | end: ${formatTime(d2, timezone)} | ${minutes} minutes`
     );
   }
 
-  console.log(`${formatDay(d)}| total: ${minutesForDay / 60} hours`);
+  console.log(`${formatDay(d, timezone)}| total: ${minutesForDay / 60} hours`);
   console.log("*******************************************************");
 }
 
