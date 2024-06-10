@@ -1,11 +1,11 @@
-import { addDays, differenceInMinutes, set } from "date-fns";
-import { toZonedTime, format } from "date-fns-tz";
+import dayjs, { Dayjs } from "dayjs";
+import tz from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(tz);
+dayjs.extend(utc);
 
-const formatDay = (zonedDate: Date, timeZone: string) =>
-  format(zonedDate, "yyyy-MM-dd EEE", { timeZone });
-
-const formatTime = (zonedDate: Date, timeZone: string) =>
-  format(zonedDate, "hh:mmaaa", { timeZone });
+const formatDay = (date: Dayjs) => date.format("YYYY-MM-DD ddd");
+const formatTime = (date: Dayjs) => date.format("hh:mma");
 
 const assignment = {
   id: 12345,
@@ -52,34 +52,33 @@ const assignment = {
 };
 
 const timezone = assignment.timezone;
-const startDate = toZonedTime(assignment.startDate, timezone);
-const endDate = toZonedTime(assignment.endDate, timezone);
+const startDate = dayjs.tz(assignment.startDate, timezone);
+const endDate = dayjs.tz(assignment.endDate, timezone);
 
 let totalMinutes = 0;
-for (let d = startDate; d <= endDate; d = addDays(d, 1)) {
+for (let d = startDate; d <= endDate; d = d.add(1, "day")) {
   let minutesForDay = 0;
-  for (const [startTime, endTime] of assignment.schedule[d.getDay()]) {
+  for (const [startTime, endTime] of assignment.schedule[d.day()]) {
     if (!startTime || !endTime) continue;
 
     const [startHour, startMinute] = startTime.split(":").map(Number);
     const [endHour, endMinute] = endTime.split(":").map(Number);
 
-    const d1 = set(d, { hours: startHour, minutes: startMinute });
-    const d2 = set(d, { hours: endHour, minutes: endMinute });
+    const d1 = d.set("hour", startHour).set("minute", startMinute);
+    const d2 = d.set("hour", endHour).set("minute", endMinute);
 
-    const minutes = differenceInMinutes(d2, d1);
+    const minutes = d2.diff(d1, "minute");
     minutesForDay += minutes;
     totalMinutes += minutes;
 
     console.log(
-      `${formatDay(d, timezone)}| start: ${formatTime(
-        d1,
-        timezone
-      )} | end: ${formatTime(d2, timezone)} | ${minutes} minutes`
+      `${formatDay(d)}| start: ${formatTime(d1)} | end: ${formatTime(
+        d2
+      )} | ${minutes} minutes`
     );
   }
 
-  console.log(`${formatDay(d, timezone)}| total: ${minutesForDay / 60} hours`);
+  console.log(`${formatDay(d)}| total: ${minutesForDay / 60} hours`);
   console.log("*******************************************************");
 }
 
